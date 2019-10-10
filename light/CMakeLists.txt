@@ -17,9 +17,7 @@ file(GLOB sources sources/*.cpp)
 file(GLOB core sources/core/*.cpp)
 file(GLOB systems sources/systems/*.cpp)
 
-#link_directories(${luajit_librany})
-
-add_executable(light ${sources} ${core} ${systems} ${imgui} ${imgui_sfml})
+add_library(light ${sources} ${core} ${systems} ${imgui} ${imgui_sfml})
 
 target_link_libraries(light flecs_static yaml-cpp spdlog OpenGL lua-static
         sfml-audio

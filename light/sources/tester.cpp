@@ -1,6 +1,9 @@
 //
-// Created by k on 9/10/19.
+// Created by k on 10/10/19.
 //
+
+#include "tester.h"
+
 
 #include <lua.hpp>
 
@@ -66,10 +69,4 @@ void modules_test(int argc, char* argv[]) {
     ecs_fini(world);
 
     spdlog::info("app quit");
-}
-
-int main (int argc, char* argv[]) {
-    modules_test(argc, argv);
-
-    return 0;
 }
