@@ -15,8 +15,15 @@
 #include <core/system.h>
 #include <core/lua_api.h>
 #include <core/lua_system.h>
+#include <core/components.h>
+#include "../../../extlibs/flecs-1.0/src/types.h"
 
 typedef int TestCom;
+
+typedef struct pos {
+    int x;
+    int y;
+} pos;
 
 light::App* light::App::m_instance = nullptr;
 
@@ -32,6 +39,7 @@ light::App::App(const char *title, int width, int height) {
 
     m_instance = this;
     m_window = new sf::RenderWindow(sf::VideoMode(width, height), title);
+    m_world->target_fps = 60;
     m_world = ecs_init();
     m_console = spdlog::stdout_color_mt("app");
 
@@ -59,23 +67,33 @@ light::App::App(const char *title, int width, int height) {
     lua_pushcfunction(m_lua, lua_get_type);
     lua_setglobal(m_lua, "get_type");
 
+    lua_pushcfunction(m_lua, lua_set_entity);
+    lua_setglobal(m_lua, "set_entity");
+
+    lua_pushcfunction(m_lua, lua_new_entity_value);
+    lua_setglobal(m_lua, "entity_value");
+
+    ImGui::SFML::Init(*m_window);
+//    auto IO = ImGui::GetIO();
+//    IO.Fonts->Clear();
+//    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuan.ttf", 20.f, nullptr, IO.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+//    ImGui::SFML::UpdateFontTexture();
+
+    Register("ComWindow", sizeof(ComWindow));
+    Register("ComWindowEvent", sizeof(ComWindowEvent));
+    Register("ComTransform", sizeof(ComTransform));
+
+    Register("TestCom", sizeof(TestCom));
+    CreateSystem(new LuaSystem, "test_system", EcsOnSet, "TestCom");
+    _ecs_new(m_world, ecs_type_from_entity(m_world, GetType("TestCom")));
+
     luaL_dofile(m_lua, fullname.c_str());
     lua_getglobal(m_lua, "main");
     int ret = lua_pcall(m_lua, 0, 0, 0);
 
     if (ret) {
-        m_console->error("[app] [init] {}", lua_tostring(m_lua, -1));
+        m_console->error("[app] [main] {}", lua_tostring(m_lua, -1));
     }
-
-    ImGui::SFML::Init(*m_window);
-//    auto IO = ImGui::GetIO();
-//    IO.Fonts->Clear();
-//    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuanYiMicroHei.ttf", 20.f, nullptr, IO.Fonts->GetGlyphRangesChineseFull());
-//    ImGui::SFML::UpdateFontTexture();
-
-    Register("TestCom", sizeof(TestCom));
-    CreateSystem(new LuaSystem, "test_system", EcsOnSet, "TestCom");
-    _ecs_new(m_world, ecs_type_from_entity(m_world, GetType("TestCom")));
 }
 
 void light::App::Run() {
@@ -104,20 +122,28 @@ void light::App::Run() {
 void light::App::ProcessEvent(sf::Event *event) {
     if (event->type == sf::Event::Closed)
         m_window->close();
+
+    auto w_event = new ComWindowEvent;
+    w_event->type = event->type;
+
+    ecs_entity_t com = GetType("ComWindowEvent");
+    ecs_entity_t ent = _ecs_new(m_world, ecs_type_from_entity(m_world, com));
+    _ecs_set_ptr(m_world, ent, com, sizeof(ComWindowEvent), w_event);
 }
 
 uint64_t light::App::Register(const char *name, int size) {
     ecs_entity_t ent = ecs_new_component(m_world, name, size);
     m_types[name] = ent;
-    m_console->info("register type: [{}]", name);
+    // m_types.insert(std::pair<const char*, int>(name, size));
+    m_console->info("register type: [{},size: {}, id: {}].now totals: {}", name, size, ent,m_types.size());
     return ent;
 }
 
 uint64_t light::App::GetType(const char *name) {
     auto iter = m_types.find(name);
     if(iter == m_types.end()) {
-        m_console->error("get type failed !");
-        return 0;
+        m_console->error("get type [{}] failed !, now count: {}", name, m_types.size());
+        return -1;
     }
 
     return m_types[name];
@@ -136,7 +162,21 @@ uint64_t light::App::CreateSystem(System *system, const char* name,int type, con
     return sys;
 }
 
-uint64_t light::App::CreateEntity(const char* id, const char* components) {
-    return ecs_new_entity(m_world, id, components);
+uint64_t light::App::CreateEntity() {
+    return _ecs_new(m_world, nullptr);
 }
+
+void light::App::SetEntity(uint64_t ent, const char *component, int size, void *data) {
+    ecs_entity_t com = GetType(component);
+    if (com < 0) return;
+    _ecs_set_ptr(m_world, ent, com, size, data);
+}
+
+uint64_t light::App::CreateEntityValue(const char *components, int size, void *data) {
+    ecs_entity_t ent = _ecs_new(m_world, nullptr);
+    _ecs_set_ptr(m_world, ent, GetType(components), size, data);
+    return ent;
+}
+
+
 

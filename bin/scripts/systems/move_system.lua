@@ -18,10 +18,9 @@ function init ()
 end
 
 function update(rows)
-    local data, count = column(rows)
+    local data, count = light.column_v(rows, "pos", 1)
     for i = 0, count - 1 do
-        local speed = light.cast("pos", data)[i]
-        speed.x = speed.x + 1
-        print(speed.x, speed.y, count)
+        local pos = light.cast("pos", data)[i]
+        print(pos.x, pos.y, count)
     end
 end

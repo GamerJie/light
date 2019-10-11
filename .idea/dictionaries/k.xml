@@ -2,6 +2,7 @@
   <dictionary name="k">
     <words>
       <w>cdef</w>
+      <w>ctype</w>
       <w>spdlog</w>
       <w>userdata</w>
     </words>

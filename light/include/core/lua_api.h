@@ -16,6 +16,8 @@ namespace light {
     int lua_new_component(lua_State *L);
     int lua_get_type(lua_State *L);
     int lua_new_entity(lua_State *L);
+    int lua_new_entity_value(lua_State *L);
+    int lua_set_entity(lua_State *L);
 
     int lua_column(lua_State* L);
 }
