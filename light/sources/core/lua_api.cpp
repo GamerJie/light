@@ -86,9 +86,8 @@ void light::add_search_path(lua_State *L, const char *name, const char *value) {
 int light::lua_new_system(lua_State *L) {
     const char* name = luaL_checkstring(L, 1);
     int type = luaL_checkint(L, 2);
-    const char* components = luaL_checkstring(L, 3);
 
-    uint64_t ent = App::Instance()->CreateSystem(new LuaSystem, name, type, components);
+    uint64_t ent = App::Instance()->CreateSystem(new LuaSystem, name, type);
     lua_pushinteger(L, ent);
     return 1;
 }

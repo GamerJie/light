@@ -11,7 +11,7 @@
 
 using namespace light;
 
-void LuaSystem::Init(const char* name) {
+const char* LuaSystem::Init(const char* name) {
     m_lua = luaL_newstate();
     luaL_openlibs(m_lua);
 
@@ -44,12 +44,19 @@ void LuaSystem::Init(const char* name) {
 
     luaL_dofile(m_lua, fullname.c_str());
     lua_getglobal(m_lua, "init");
-    int ret = lua_pcall(m_lua, 0, 0, 0);
+    int ret = lua_pcall(m_lua, 0, 1, 0);
 
     if (ret) {
         const char *data = lua_tostring(m_lua, -1);
         console->error("[{}] [init] {}", name, data);
+        return "";
     }
+
+    if (lua_isstring(m_lua, -1)){
+        return lua_tostring(m_lua, - 1);
+    }
+
+    return "";
 }
 
 void LuaSystem::Update(ecs_rows_t *rows) {

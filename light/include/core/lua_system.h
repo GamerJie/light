@@ -12,7 +12,7 @@ struct lua_State;
 namespace light {
     LightAPI class LuaSystem: public System {
     public:
-        void Init(const char *name) override ;
+        const char* Init(const char *name) override ;
         void Update(ecs_rows_t*) override ;
 
     private:

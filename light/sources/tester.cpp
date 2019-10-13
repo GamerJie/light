@@ -34,7 +34,7 @@ void modules_test(int argc, char* argv[]) {
 
     auto IO = ImGui::GetIO();
     IO.Fonts->Clear();
-    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuanYiMicroHei.ttf", 20.f, NULL, IO.Fonts->GetGlyphRangesChineseFull());
+    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuan.ttf", 20.f, NULL, IO.Fonts->GetGlyphRangesChineseFull());
     ImGui::SFML::UpdateFontTexture();
 
     spdlog::info("init over");

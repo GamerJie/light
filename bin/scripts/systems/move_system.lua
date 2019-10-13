@@ -14,7 +14,8 @@ light.define [[
 ]]
 
 function init ()
-     component("pos", light.sizeof("pos"))
+    component("pos", light.sizeof("pos"))
+    return "pos"
 end
 
 function update(rows)

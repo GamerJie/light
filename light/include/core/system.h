@@ -18,7 +18,7 @@ namespace spdlog {
 namespace light {
     LightAPI class System {
     public:
-        virtual void Init(const char* name){};
+        virtual const char* Init(const char* name){ return ""; };
         virtual void Update(ecs_rows_t *rows) {};
 
     public:

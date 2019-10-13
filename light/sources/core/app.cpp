@@ -16,7 +16,8 @@
 #include <core/lua_api.h>
 #include <core/lua_system.h>
 #include <core/components.h>
-#include "../../../extlibs/flecs-1.0/src/types.h"
+#include <core/res_manager.h>
+#include <systems/imgui/im_window_system.h>
 
 typedef int TestCom;
 
@@ -38,8 +39,12 @@ light::App::App(const char *title, int width, int height) {
     }
 
     m_instance = this;
+    m_res = new ResManager("./assets/");
     m_window = new sf::RenderWindow(sf::VideoMode(width, height), title);
-    m_world->target_fps = 60;
+    m_game = new sf::RenderTexture;
+    m_game->create(800, 600);
+
+
     m_world = ecs_init();
     m_console = spdlog::stdout_color_mt("app");
 
@@ -74,18 +79,20 @@ light::App::App(const char *title, int width, int height) {
     lua_setglobal(m_lua, "entity_value");
 
     ImGui::SFML::Init(*m_window);
-//    auto IO = ImGui::GetIO();
-//    IO.Fonts->Clear();
-//    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuan.ttf", 20.f, nullptr, IO.Fonts->GetGlyphRangesChineseSimplifiedCommon());
-//    ImGui::SFML::UpdateFontTexture();
+    auto IO = ImGui::GetIO();
+    IO.Fonts->Clear();
+    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuan.ttf", 20.f, nullptr, IO.Fonts->GetGlyphRangesChineseFull());
+    ImGui::SFML::UpdateFontTexture();
 
     Register("ComWindow", sizeof(ComWindow));
     Register("ComWindowEvent", sizeof(ComWindowEvent));
     Register("ComTransform", sizeof(ComTransform));
 
     Register("TestCom", sizeof(TestCom));
-    CreateSystem(new LuaSystem, "test_system", EcsOnSet, "TestCom");
+    CreateSystem(new LuaSystem, "test_system", EcsOnSet);
     _ecs_new(m_world, ecs_type_from_entity(m_world, GetType("TestCom")));
+
+    CreateSystem(new ImWindowSystem, "ImWindowSystem", EcsOnUpdate);
 
     luaL_dofile(m_lua, fullname.c_str());
     lua_getglobal(m_lua, "main");
@@ -103,17 +110,42 @@ void light::App::Run() {
         while (m_window->pollEvent(event)) {
             ImGui::SFML::ProcessEvent(event);
             ProcessEvent(&event);
-
-            auto delta = deltaClock.restart();
-            ImGui::SFML::Update(*m_window, delta);
-
-            m_window->clear();
-            ecs_progress(m_world, delta.asSeconds());
-            ImGui::ShowTestWindow();
-
-            ImGui::SFML::Render();
-            m_window->display();
         }
+        auto delta = deltaClock.restart();
+        ImGui::SFML::Update(*m_window, delta);
+
+        m_game->clear(sf::Color(111, 111, 111));
+        ecs_progress(m_world, delta.asSeconds());
+        m_game->display();
+
+        const sf::Texture &texture = m_game->getTexture();
+
+        // ImGui::ShowTestWindow();
+
+        ImGui::BeginMainMenuBar();
+        if (ImGui::BeginMenu("Engine")) {
+            ImGui::MenuItem("About");
+            if (ImGui::MenuItem("Exit")) {
+                m_window->close();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::MenuItem("▶");
+        ImGui::MenuItem("▣");
+        ImGui::MenuItem("▶");
+
+        ImGui::EndMainMenuBar();
+
+        ImGui::SetNextWindowContentSize(ImVec2(400, 300));
+        ImGui::Begin("Game");
+        ImGui::Image(texture, sf::Vector2f(400, 300));
+        ImGui::End();
+
+        m_window->clear();
+        ImGui::SFML::Render();
+        m_window->display();
     }
 
     ImGui::SFML::Shutdown();
@@ -132,11 +164,16 @@ void light::App::ProcessEvent(sf::Event *event) {
 }
 
 uint64_t light::App::Register(const char *name, int size) {
-    ecs_entity_t ent = ecs_new_component(m_world, name, size);
-    m_types[name] = ent;
-    // m_types.insert(std::pair<const char*, int>(name, size));
-    m_console->info("register type: [{},size: {}, id: {}].now totals: {}", name, size, ent,m_types.size());
-    return ent;
+    auto iter = m_types.find(name);
+    if(iter == m_types.end()) {
+        ecs_entity_t ent = ecs_new_component(m_world, name, size);
+        m_types[name] = ent;
+        m_console->info("register type: [{},size: {}, id: {}].now totals: {}", name, size, ent,m_types.size());
+        return ent;
+    }
+
+    m_console->warn("type: [{}] already registered !", name);
+    return -1;
 }
 
 uint64_t light::App::GetType(const char *name) {
@@ -149,11 +186,10 @@ uint64_t light::App::GetType(const char *name) {
     return m_types[name];
 }
 
-uint64_t light::App::CreateSystem(System *system, const char* name,int type, const char* components) {
+uint64_t light::App::CreateSystem(System *system, const char* name,int type) {
     system->console = spdlog::stdout_color_mt(name);
-    system->Init(name);
 
-    ecs_entity_t sys = ecs_new_system(m_world, name, (EcsSystemKind)type, components, [](ecs_rows_t *rows){
+    ecs_entity_t sys = ecs_new_system(m_world, name, (EcsSystemKind)type, system->Init(name), [](ecs_rows_t *rows){
         auto s = (System*)rows->param;
         s->Update(rows);
     });
@@ -176,6 +212,10 @@ uint64_t light::App::CreateEntityValue(const char *components, int size, void *d
     ecs_entity_t ent = _ecs_new(m_world, nullptr);
     _ecs_set_ptr(m_world, ent, GetType(components), size, data);
     return ent;
+}
+
+void light::App::Draw(sf::Drawable *drawable) {
+    m_game->draw(*drawable);
 }
 
 

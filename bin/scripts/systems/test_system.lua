@@ -8,6 +8,7 @@ local light = require "light"
 
 function init ()
     print("test system init")
+    return "TestCom"
 end
 
 function update (rows)
