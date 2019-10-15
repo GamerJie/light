@@ -22,7 +22,7 @@ void light::ImWindowSystem::Update(ecs_rows_t *rows) {
             ImGui::SetNextWindowContentSize(sf::Vector2f(data.size.x, data.size.y));
         }
 
-        ImGui::Begin(data.name);
+        ImGui::Begin(data.name, &data.show);
         for (auto child : data.child) {
             if (child->type == 1) {
                 ImGui::Text("%s", child->text);

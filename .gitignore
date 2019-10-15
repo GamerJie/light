@@ -4,3 +4,7 @@ build/
 bin/light
 
 *.dylib
+
+bin/example
+
+bin/imgui.ini

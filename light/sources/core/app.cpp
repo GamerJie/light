@@ -79,10 +79,10 @@ light::App::App(const char *title, int width, int height) {
     lua_setglobal(m_lua, "entity_value");
 
     ImGui::SFML::Init(*m_window);
-    auto IO = ImGui::GetIO();
-    IO.Fonts->Clear();
-    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuan.ttf", 20.f, nullptr, IO.Fonts->GetGlyphRangesChineseFull());
-    ImGui::SFML::UpdateFontTexture();
+//    auto IO = ImGui::GetIO();
+//    IO.Fonts->Clear();
+//    IO.Fonts->AddFontFromFileTTF("assets/fonts/WenQuan.ttf", 20.f, nullptr, IO.Fonts->GetGlyphRangesChineseFull());
+//    ImGui::SFML::UpdateFontTexture();
 
     Register("ComWindow", sizeof(ComWindow));
     Register("ComWindowEvent", sizeof(ComWindowEvent));

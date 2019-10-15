@@ -18,42 +18,42 @@ int light::lua_print(lua_State* L) {
     sprintf(msg, "%s", "");
 
     for (int i = 1; i <= args; i++) {
-
+        const char* nl = i == args ? "" : "\t";
         int type = lua_type(L, i);
         switch (type)
         {
             case LUA_TNUMBER:
-                sprintf(temp, "%g\t", lua_tonumber(L, i));
+                sprintf(temp, "%g%s", lua_tonumber(L, i), nl);
                 break;
             case LUA_TSTRING:
-                sprintf(temp, "%s\t", lua_tostring(L, i));
+                sprintf(temp, "%s%s", lua_tostring(L, i), nl);
                 break;
             case LUA_TTABLE:
-                sprintf(temp, "%s", "[table]\t");
+                sprintf(temp, "%s%s", "[table]", nl);
                 break;
             case LUA_TNIL:
-                sprintf(temp, "%s", "[nil]\t");
+                sprintf(temp, "%s%s", "[nil]", nl);
                 break;
             case LUA_TUSERDATA:
-                sprintf(temp, "%s", "[userdata]\t");
+                sprintf(temp, "%s%s", "[userdata]", nl);
                 break;
             case LUA_TBOOLEAN:
-                sprintf(temp, "%s\t", lua_toboolean(L, i) ? "[true]" : "[false]");
+                sprintf(temp, "%s%s", lua_toboolean(L, i) ? "[true]" : "[false]", nl);
                 break;
             case LUA_TFUNCTION:
-                sprintf(temp, "%s", "[function]\t");
+                sprintf(temp, "%s%s", "[function]", nl);
                 break;
             case LUA_TTHREAD:
-                sprintf(temp, "%s", "[thread]\t");
+                sprintf(temp, "%s%s", "[thread]", nl);
                 break;
             case LUA_TLIGHTUSERDATA:
-                sprintf(temp, "[l_userdata]\t");
+                sprintf(temp, "%s%s", "[l_userdata]", nl);
                 break;
             default:
                 const void* data = lua_topointer(L, i);
                 if (data) {
-                    sprintf(temp, "[type %lu]\t", sizeof(typeof(data)));
-                } else  sprintf(temp, "[unknowns]\t");
+                    sprintf(temp, "[type %lu]%s", sizeof(typeof(data)), nl);
+                } else  sprintf(temp, "%s%s", "[unknowns]", nl);
                 break;
         }
 

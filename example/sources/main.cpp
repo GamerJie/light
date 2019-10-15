@@ -13,6 +13,7 @@ int main (int argc, char* argv[]) {
 
     App app("light Example", 1280, 720);
 
+    bool show = false;
     auto window = new ComImWindow;
     window->name = "TestWindow";
     window->size = Vector2f(200, 300);
@@ -20,6 +21,7 @@ int main (int argc, char* argv[]) {
     widget->type = 1;
     widget->text = "text widget";
     window->child.push_back(widget);
+    window->show = show;
     app.CreateEntityValue("ComImWindow", sizeof(ComImWindow), window);
 
     app.Run();

@@ -47,6 +47,7 @@ namespace light {
         Vector2f position;
         const char *name{};
         std::vector<ImWidget*> child;
+        bool show;
     } ComImWindow;
 
     typedef struct ComTransform {
